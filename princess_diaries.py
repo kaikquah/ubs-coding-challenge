@@ -172,4 +172,3 @@ def solve_princess_diaries(payload: Dict[str, Any]) -> Dict[str, Any]:
         "min_fee": int(global_best_fee),
         "schedule": schedule_names,
     }
-
