@@ -1,7 +1,4 @@
 import numpy as np
-import pandas as pd
-from scipy import interpolate
-from scipy.signal import savgol_filter
 from flask import Blueprint, jsonify, request
 import logging
 
@@ -10,9 +7,79 @@ logger = logging.getLogger(__name__)
 blankety_bp = Blueprint('blankety', __name__)
 
 
+def cubic_spline_coeffs(x, y):
+    """Simple cubic spline implementation using numpy only"""
+    n = len(x)
+    if n < 2:
+        return None
+    
+    # Create system of equations for natural cubic spline
+    h = np.diff(x)
+    alpha = np.zeros(n-1)
+    
+    for i in range(1, n-1):
+        alpha[i] = 3/h[i] * (y[i+1] - y[i]) - 3/h[i-1] * (y[i] - y[i-1])
+    
+    # Solve tridiagonal system
+    l = np.ones(n)
+    mu = np.zeros(n)
+    z = np.zeros(n)
+    
+    for i in range(1, n-1):
+        l[i] = 2 * (x[i+1] - x[i-1]) - h[i-1] * mu[i-1]
+        if abs(l[i]) < 1e-10:
+            return None
+        mu[i] = h[i] / l[i]
+        z[i] = (alpha[i] - h[i-1] * z[i-1]) / l[i]
+    
+    # Back substitution
+    c = np.zeros(n)
+    b = np.zeros(n-1)
+    d = np.zeros(n-1)
+    
+    for j in range(n-2, -1, -1):
+        c[j] = z[j] - mu[j] * c[j+1]
+        b[j] = (y[j+1] - y[j]) / h[j] - h[j] * (c[j+1] + 2*c[j]) / 3
+        d[j] = (c[j+1] - c[j]) / (3 * h[j])
+    
+    return {'a': y[:-1], 'b': b, 'c': c[:-1], 'd': d, 'x': x[:-1]}
+
+
+def evaluate_spline(spline, x_new):
+    """Evaluate cubic spline at new points"""
+    if spline is None:
+        return None
+    
+    result = np.zeros(len(x_new))
+    for i, xi in enumerate(x_new):
+        # Find the right interval
+        j = np.searchsorted(spline['x'], xi) - 1
+        j = max(0, min(j, len(spline['x']) - 1))
+        
+        dx = xi - spline['x'][j]
+        result[i] = (spline['a'][j] + spline['b'][j] * dx + 
+                    spline['c'][j] * dx**2 + spline['d'][j] * dx**3)
+    
+    return result
+
+
+def moving_average_smooth(data, window=5):
+    """Simple moving average smoothing"""
+    if len(data) < window:
+        return data
+    
+    smoothed = np.copy(data)
+    half_window = window // 2
+    
+    for i in range(half_window, len(data) - half_window):
+        smoothed[i] = np.mean(data[i-half_window:i+half_window+1])
+    
+    return smoothed
+
+
 def impute_series(series):
     """
-    Impute missing values in a time series using multiple methods and choose the best approach.
+    Impute missing values in a time series using numpy-only methods.
     """
     # Convert to numpy array and find missing indices
     data = np.array(series, dtype=float)
@@ -39,54 +106,78 @@ def impute_series(series):
     # Try multiple imputation methods
     methods = []
     
-    # Method 1: Cubic spline interpolation
+    # Method 1: Linear interpolation with extrapolation
     try:
-        if len(valid_values) >= 4:
-            cs = interpolate.CubicSpline(valid_indices, valid_values, extrapolate=True)
-            imputed = cs(missing_indices)
-            methods.append(('spline', imputed))
-    except:
-        pass
-    
-    # Method 2: Linear interpolation with extrapolation
-    try:
-        interp_func = interpolate.interp1d(valid_indices, valid_values, 
-                                         kind='linear', fill_value='extrapolate')
-        imputed = interp_func(missing_indices)
+        imputed = np.interp(missing_indices, valid_indices, valid_values)
         methods.append(('linear', imputed))
     except:
         pass
     
-    # Method 3: Polynomial fitting (try different degrees)
+    # Method 2: Polynomial fitting (try different degrees)
     for degree in [1, 2, 3]:
         try:
             if len(valid_values) > degree:
                 coeffs = np.polyfit(valid_indices, valid_values, degree)
                 poly = np.poly1d(coeffs)
                 imputed = poly(missing_indices)
+                # Clip extreme values
+                if len(valid_values) > 0:
+                    val_range = np.max(valid_values) - np.min(valid_values)
+                    val_mean = np.mean(valid_values)
+                    imputed = np.clip(imputed, 
+                                    val_mean - 3*val_range, 
+                                    val_mean + 3*val_range)
                 methods.append((f'poly_{degree}', imputed))
         except:
             continue
     
-    # Method 4: Savitzky-Golay filter-based approach
+    # Method 3: Cubic spline (numpy implementation)
+    try:
+        if len(valid_values) >= 4:
+            spline = cubic_spline_coeffs(valid_indices.astype(float), valid_values)
+            if spline is not None:
+                imputed = evaluate_spline(spline, missing_indices.astype(float))
+                if imputed is not None and not np.any(np.isnan(imputed)):
+                    methods.append(('spline', imputed))
+    except:
+        pass
+    
+    # Method 4: Moving average based interpolation
     try:
         if len(valid_values) >= 5:
-            # Create a temporary complete series using linear interpolation
+            # First do linear interpolation
             temp_data = data.copy()
-            interp_func = interpolate.interp1d(valid_indices, valid_values, 
-                                             kind='linear', fill_value='extrapolate')
-            temp_data[missing_mask] = interp_func(missing_indices)
+            temp_data[missing_mask] = np.interp(missing_indices, valid_indices, valid_values)
             
-            # Apply Savgol filter
-            window_length = min(51, len(temp_data) if len(temp_data) % 2 == 1 else len(temp_data) - 1)
-            if window_length < 5:
-                window_length = 5
-            if window_length % 2 == 0:
-                window_length += 1
-                
-            smoothed = savgol_filter(temp_data, window_length, 3)
+            # Apply moving average smoothing
+            smoothed = moving_average_smooth(temp_data, window=min(11, len(temp_data)//10 + 1))
             imputed = smoothed[missing_indices]
-            methods.append(('savgol', imputed))
+            methods.append(('moving_avg', imputed))
+    except:
+        pass
+    
+    # Method 5: Local linear regression (simple version)
+    try:
+        imputed_vals = []
+        for miss_idx in missing_indices:
+            # Find nearby points for local fitting
+            distances = np.abs(valid_indices - miss_idx)
+            n_neighbors = min(10, len(valid_indices))
+            nearest_idx = np.argsort(distances)[:n_neighbors]
+            
+            local_x = valid_indices[nearest_idx]
+            local_y = valid_values[nearest_idx]
+            
+            if len(local_x) >= 2:
+                # Simple linear regression
+                coeffs = np.polyfit(local_x, local_y, 1)
+                imputed_val = np.polyval(coeffs, miss_idx)
+            else:
+                imputed_val = np.mean(local_y)
+            
+            imputed_vals.append(imputed_val)
+        
+        methods.append(('local_linear', np.array(imputed_vals)))
     except:
         pass
     
@@ -102,7 +193,6 @@ def impute_series(series):
             methods.append(('mean', imputed))
     
     # Choose the method that produces the most stable results
-    # (least variance in second derivatives for smoothness)
     best_method = None
     best_score = float('inf')
     
@@ -116,10 +206,13 @@ def impute_series(series):
             if np.any(np.isnan(imputed_vals)) or np.any(np.isinf(imputed_vals)):
                 continue
             
-            # Calculate smoothness score (second derivative variance)
+            # Calculate smoothness score (variance of second differences)
             if len(temp_data) >= 3:
                 second_diff = np.diff(temp_data, n=2)
-                score = np.var(second_diff) + 0.1 * np.var(imputed_vals)  # Penalize high variance
+                smoothness_score = np.var(second_diff)
+                # Also penalize extreme deviations from local trends
+                deviation_score = 0.1 * np.var(imputed_vals)
+                score = smoothness_score + deviation_score
             else:
                 score = np.var(imputed_vals)
             
