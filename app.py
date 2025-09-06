@@ -9,11 +9,15 @@ from mst_solver import calculate_mst_weights
 from princess_diaries_optimized import solve_princess_diaries
 from latex_formula_evaluator import latex_bp
 from snakes_ladders_solver import snakes_bp
+from sailing_club import sailing_bp
 import cv2
 from ink_archive_solver import solve_ink_archive_challenge
 from mages_gambit_solver import solve_mages_gambit_multiple
+<<<<<<< HEAD
+=======
 from sailing_club import merge_bookings, min_boats_needed
 from duolingo_sort import solve_duolingo_sort
+>>>>>>> 72925441da74f7f292dceda459869b6bb2614e23
 
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
@@ -22,7 +26,7 @@ app = Flask(__name__)
 app.register_blueprint(blankety_bp)
 app.register_blueprint(latex_bp)
 app.register_blueprint(snakes_bp) 
-
+app.register_blueprint(sailing_bp)
 
 @app.before_request
 def log_request_info():
@@ -38,7 +42,43 @@ def log_response_info(response):
     logger.info('Response Headers: %s', dict(response.headers))
     return response
 
+@app.route('/', methods=['GET'])
+def default_route():
+    return 'Python Template'
 
+@app.route("/trivia", methods = ["GET"])
+def trivia():
+    answers = [
+        4,
+        1,
+        2,
+        2,
+        3,
+        4,
+        4,
+        5,
+        4,
+        3,
+        3,
+        2,
+        1,
+        4,
+        2,
+        1,
+        1,
+        2,
+        2,
+        1,
+        5,
+        2,
+        3,
+        3,
+        2
+    ]
+    return jsonify(answers)
+
+        
+    
 @app.route('/debug-routes', methods=['GET'])
 def debug_routes():
     routes = []
@@ -203,7 +243,6 @@ def ink_archive():
         import traceback
         logger.error(f"Full traceback:\n{traceback.format_exc()}")
         return jsonify({'error': 'Internal server error', 'message': str(e)}), 500
-    
 # MST calculation endpoint
 @app.route('/mst-calculation', methods=['POST'])
 def mst_calculation():
@@ -249,29 +288,6 @@ def princess_diaries():
     except Exception as e:
         logger.error(f"Error in /princess-diaries: {e}")
         return jsonify({'error': 'Internal server error'}), 500
-    
-@app.route('/sailing-club/submission', methods=['POST'])
-def sailing_submission():
-    data = request.get_json()
-    
-    solutions = []
-    
-    for test_case in data['testCases']:
-        bookings = test_case['input']
-        
-        # Part 1: Merge overlapping bookings
-        sorted_merged_slots = merge_bookings(bookings)
-        
-        # Part 2: Calculate minimum boats needed
-        min_boats = min_boats_needed(bookings)
-        
-        solutions.append({
-            'id': test_case['id'],
-            'sortedMergedSlots': sorted_merged_slots,
-            'minBoatsNeeded': min_boats
-        })
-    
-    return jsonify({'solutions': solutions})
 
 # Duolingo Sort endpoint
 @app.route('/duolingo-sort', methods=['POST'])
