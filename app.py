@@ -6,7 +6,7 @@ from TicketingAgent import calculate_distance, distance_to_points_linear, proces
 from blankety_challenge import blankety_bp
 from spy import buildAdjacencyList, process_data, processNetwork
 from mst_solver import calculate_mst_weights
-from princess_diaries_optimized import solve_princess_diaries
+from princess_diaries_segment_tree import solve_princess_diaries
 from latex_formula_evaluator import latex_bp
 import cv2
 logger = logging.getLogger(__name__)
