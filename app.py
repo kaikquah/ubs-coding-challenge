@@ -96,8 +96,22 @@ def princess_diaries():
     except Exception as e:
         logger.error(f"Error in /princess-diaries: {e}")
         return jsonify({'error': 'Internal server error'}), 500
+# Add a simple test route to verify the app is working
+@app.route('/test', methods=['GET', 'POST'])
+def test_route():
+    return jsonify({
+        'message': 'App is working',
+        'method': request.method,
+        'routes_count': len(list(app.url_map.iter_rules()))
+    })
+
 if __name__ == "__main__":
     logging.info("Starting application in development mode...")
+    
+    # Log all registered routes for debugging
+    logger.info("Registered routes:")
+    for rule in app.url_map.iter_rules():
+        logger.info(f"  {rule.endpoint}: {rule.rule} {list(rule.methods)}")
     
     # This only runs when you execute: python app.py
     # Render will use Gunicorn instead
