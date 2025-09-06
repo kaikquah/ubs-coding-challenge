@@ -1,10 +1,9 @@
 import logging
 import socket
-
-from routes import app
+from flask import Flask, jsonify, request
 
 logger = logging.getLogger(__name__)
-
+app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
 def default_route():
