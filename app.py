@@ -5,7 +5,7 @@ from flask import Flask, jsonify, request
 from TicketingAgent import calculate_distance, distance_to_points_linear, processInput
 from flask import Flask
 from blankety_challenge import blankety_bp
-
+from spy import buildAdjacencyList, process_data, processNetwork
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
@@ -35,6 +35,14 @@ def ticket_agent():
         }), 400
     data = request.get_json()
     result = processInput(data)
+    response = jsonify(result)
+    return response
+
+# spy network
+@app.route('/investigate', method = ['POST'])
+def investigate():
+    data = request.get_json()
+    result = process_data(data)
     response = jsonify(result)
     return response
 if __name__ == "__main__":
