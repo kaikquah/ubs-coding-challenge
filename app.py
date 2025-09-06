@@ -12,7 +12,7 @@ from snakes_ladders_solver import snakes_bp
 from sailing_club import sailing_bp
 import cv2
 from ink_archive_solver import solve_ink_archive_challenge
-from mages_gambit_solver import solve_mages_gambit
+from mages_gambit_solver import solve_mages_gambit_multiple
 
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
