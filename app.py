@@ -1,10 +1,14 @@
 import logging
 import socket
 import os
-from flask import Flask, jsonify, request
+from flask import Flask
+from blankety_challenge import blankety_bp
 
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
+
+# Register blueprints
+app.register_blueprint(blankety_bp)
 
 @app.route('/', methods=['GET'])
 def default_route():
