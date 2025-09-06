@@ -12,6 +12,7 @@ from snakes_ladders_solver import snakes_bp
 from sailing_club import solve_sailing_club
 import cv2
 from ink_archive_solver import solve_ink_archive_challenge
+from mages_gambit_solver import solve_mages_gambit
 
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
@@ -121,8 +122,48 @@ def investigate():
         }), 500
     
 
-    # Add this to your app.py file
 
+
+@app.route('/the-mages-gambit', methods=['POST'])
+def mages_gambit():
+    logger.info("Mage's Gambit endpoint called")
+    
+    if request.content_type != 'application/json':
+        logger.error(f"Invalid content type: {request.content_type}")
+        return jsonify({'error': 'Content-Type must be application/json'}), 400
+    
+    try:
+        data = request.get_json()
+        logger.info(f"Received Mage's Gambit data: {data}")
+        
+        if not isinstance(data, list):
+            logger.error("Expected a list of test cases")
+            return jsonify({'error': 'Expected a list of test cases'}), 400
+        
+        # Validate structure
+        for i, test_case in enumerate(data):
+            if not isinstance(test_case, dict):
+                logger.error(f"Test case {i} is not a dict")
+                return jsonify({'error': f'Test case {i} must be a dictionary'}), 400
+            
+            required_fields = ['intel', 'reserve', 'fronts', 'stamina']
+            for field in required_fields:
+                if field not in test_case:
+                    logger.error(f"Test case {i} missing field: {field}")
+                    return jsonify({'error': f'Test case {i} must have "{field}" field'}), 400
+        
+        # Process the test cases
+        logger.info("Processing Mage's Gambit challenges...")
+        result = solve_mages_gambit_multiple(data)
+        logger.info(f"Mage's Gambit result: {result}")
+        
+        return jsonify(result)
+    
+    except Exception as e:
+        logger.error(f"Error in /the-mages-gambit: {e}")
+        import traceback
+        logger.error(f"Full traceback:\n{traceback.format_exc()}")
+        return jsonify({'error': 'Internal server error', 'message': str(e)}), 500
 
 @app.route('/The-Ink-Archive', methods=['POST'])
 def ink_archive():
