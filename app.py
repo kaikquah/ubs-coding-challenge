@@ -35,9 +35,7 @@ def log_response_info(response):
     logger.info('Response Status: %s', response.status)
     logger.info('Response Headers: %s', dict(response.headers))
     return response
-@app.route('/', methods=['GET'])
-def default_route():
-    return 'Python Template'
+
 
 @app.route('/debug-routes', methods=['GET'])
 def debug_routes():
