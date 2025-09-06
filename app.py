@@ -13,11 +13,9 @@ from sailing_club import sailing_bp
 import cv2
 from ink_archive_solver import solve_ink_archive_challenge
 from mages_gambit_solver import solve_mages_gambit_multiple
-<<<<<<< HEAD
-=======
 from sailing_club import merge_bookings, min_boats_needed
 from duolingo_sort import solve_duolingo_sort
->>>>>>> 72925441da74f7f292dceda459869b6bb2614e23
+from fog_of_wall_solver import fog_bp
 
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
@@ -27,6 +25,7 @@ app.register_blueprint(blankety_bp)
 app.register_blueprint(latex_bp)
 app.register_blueprint(snakes_bp) 
 app.register_blueprint(sailing_bp)
+app.register_blueprint(fog_bp)
 
 @app.before_request
 def log_request_info():
