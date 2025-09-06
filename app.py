@@ -13,11 +13,9 @@ from sailing_club import sailing_bp
 import cv2
 from ink_archive_solver import solve_ink_archive_challenge
 from mages_gambit_solver import solve_mages_gambit_multiple
-<<<<<<< HEAD
-=======
+
 from sailing_club import merge_bookings, min_boats_needed
 from duolingo_sort import solve_duolingo_sort
->>>>>>> 72925441da74f7f292dceda459869b6bb2614e23
 
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
@@ -75,7 +73,7 @@ def trivia():
         3,
         2
     ]
-    return jsonify(answers)
+    return jsonify({"answers":answers})
 
         
     
