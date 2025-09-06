@@ -2,7 +2,7 @@ import logging
 import socket
 import os
 from flask import Flask, jsonify, request
-
+from TicketingAgent import calculate_distance, distance_to_points_linear, processInput
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
@@ -19,14 +19,18 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
-# if __name__ == "__main__":
-#     logging.info("Starting application ...")
-#     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#     sock.bind(('localhost', 8080))
-#     port = sock.getsockname()[1]
-#     sock.close()
-#     app.run(port=port)
 
+# Ticketing agent api
+@app.route('/ticketing-agent', methods = ['POST'])
+def ticket_agent():
+    if request.content_type != 'application/json':
+        return jsonify({
+            'error': 'Content-Type must be application/json'
+        }), 400
+    data = request.get_json()
+    result = processInput(data)
+    response = jsonify(result)
+    return response
 if __name__ == "__main__":
     logging.info("Starting application in development mode...")
     
