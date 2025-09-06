@@ -278,7 +278,8 @@ def sailing_submission():
 def duolingo_sort():
     logger.info("Duolingo Sort endpoint called")
     
-    if request.content_type != 'application/json':
+    # Check if content type contains 'application/json' (allows charset)
+    if not request.is_json:
         logger.error(f"Invalid content type: {request.content_type}")
         return jsonify({'error': 'Content-Type must be application/json'}), 400
     
