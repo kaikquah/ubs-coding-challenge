@@ -68,48 +68,48 @@ def ticket_agent():
 
 # spy network
 # spy network
-@app.route('/investigate', methods = ['POST'])
+@app.route('/investigate', methods=['POST'])
 def investigate():
     try:
-        logger.info("Investigate endpoint called")
+        logger.info("=== INVESTIGATE ENDPOINT CALLED ===")
         
         # Check content type
         if request.content_type != 'application/json':
             logger.error(f"Invalid content type: {request.content_type}")
-            return jsonify({
-                'error': 'Content-Type must be application/json'
-            }), 400
+            return jsonify({'error': 'Content-Type must be application/json'}), 400
         
-        # Get and validate JSON data
+        # Parse JSON
         data = request.get_json()
         logger.info(f"Received data: {data}")
         
         if not data:
             logger.error("No JSON data received")
-            return jsonify({
-                'error': 'No JSON data provided'
-            }), 400
+            return jsonify({'error': 'No JSON data provided'}), 400
         
-        if 'networks' not in data:
-            logger.error("Missing 'networks' key in data")
-            return jsonify({
-                'error': 'Missing networks key'
-            }), 400
+        # Handle the actual data structure: direct list of networks
+        if isinstance(data, list):
+            # Challenge sends: [{"networkId": "...", "network": [...]}, ...]
+            networks_data = {"networks": data}
+            logger.info(f"Converted list to networks structure: {len(data)} networks")
+        elif isinstance(data, dict) and 'networks' in data:
+            # Standard structure: {"networks": [...]}
+            networks_data = data
+            logger.info("Using standard networks structure")
+        else:
+            logger.error(f"Unexpected data structure: {type(data)}, keys: {list(data.keys()) if isinstance(data, dict) else 'not a dict'}")
+            return jsonify({'error': 'Invalid data structure'}), 400
         
         # Process the data
         logger.info("Processing spy network data...")
-        result = process_data(data)
-        logger.info(f"Processing complete, result: {result}")
+        result = process_data(networks_data)
+        logger.info(f"Result: {result}")
         
-        # Return response
-        response = jsonify(result)
-        logger.info("Response created successfully")
-        return response
+        return jsonify(result)
         
     except Exception as e:
-        logger.error(f"Error in /investigate endpoint: {e}")
+        logger.error(f"EXCEPTION in /investigate: {str(e)}")
         import traceback
-        logger.error(f"Traceback: {traceback.format_exc()}")
+        logger.error(f"Full traceback:\n{traceback.format_exc()}")
         return jsonify({
             'error': 'Internal server error',
             'message': str(e)
