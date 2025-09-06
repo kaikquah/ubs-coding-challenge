@@ -5,7 +5,7 @@ from flask import Flask, jsonify, request
 from TicketingAgent import calculate_distance, distance_to_points_linear, processInput
 from blankety_challenge import blankety_bp
 from mst_solver import calculate_mst_weights
-from princess_diaries import solve_princess_diaries
+from princess_diaries_optimized import solve_princess_diaries
 
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
