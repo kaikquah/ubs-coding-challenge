@@ -9,6 +9,7 @@ from mst_solver import calculate_mst_weights
 from princess_diaries_optimized import solve_princess_diaries
 from latex_formula_evaluator import latex_bp
 from snakes_ladders_solver import snakes_bp
+from sailing_club import solve_sailing_club
 import cv2
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
@@ -161,6 +162,29 @@ def princess_diaries():
     except Exception as e:
         logger.error(f"Error in /princess-diaries: {e}")
         return jsonify({'error': 'Internal server error'}), 500
+# Sailing Club optimization endpoint
+@app.route('/sailing-club/submission', methods=['POST'])
+def sailing_club_submission():
+    logger.info("Sailing Club endpoint called")
+    if request.content_type != 'application/json':
+        logger.error(f"Invalid content type: {request.content_type}")
+        return jsonify({'error': 'Content-Type must be application/json'}), 400
+    
+    try:
+        data = request.get_json()
+        logger.info(f"Received sailing club data: {data}")
+        
+        if not isinstance(data, dict):
+            return jsonify({'error': 'Invalid payload format'}), 400
+        
+        result = solve_sailing_club(data)
+        logger.info(f"Returning sailing club result: {result}")
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Error in /sailing-club/submission: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
+
 # Add a simple test route to verify the app is working
 
 @app.route('/test', methods=['GET', 'POST'])
