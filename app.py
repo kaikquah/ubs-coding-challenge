@@ -28,14 +28,9 @@ logger.setLevel(logging.INFO)
 #     app.run(port=port)
 
 if __name__ == "__main__":
-    logging.info("Starting application ...")
+    logging.info("Starting application in development mode...")
     
-    # Get port from environment variable (Render provides this)
-    # Fallback to 8080 for local development
+    # This only runs when you execute: python app.py
+    # Render will use Gunicorn instead
     port = int(os.environ.get("PORT", 8080))
-    
-    # For Render deployment, bind to 0.0.0.0 (not localhost)
-    # For local development, you can use localhost
-    host = "0.0.0.0" if os.environ.get("RENDER") else "localhost"
-    
-    app.run(host=host, port=port, debug=False)
+    app.run(host="localhost", port=port, debug=True)
