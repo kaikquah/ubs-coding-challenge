@@ -5,6 +5,7 @@ from flask import Flask, jsonify, request
 from TicketingAgent import calculate_distance, distance_to_points_linear, processInput
 from flask import Flask
 from blankety_challenge import blankety_bp
+from mst_solver import calculate_mst_weights
 
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
@@ -37,6 +38,33 @@ def ticket_agent():
     result = processInput(data)
     response = jsonify(result)
     return response
+
+
+# MST calculation endpoint
+@app.route('/mst-calculation', methods=['POST'])
+def mst_calculation():
+    if request.content_type != 'application/json':
+        return jsonify({
+            'error': 'Content-Type must be application/json'
+        }), 400
+    
+    try:
+        data = request.get_json()
+        if not isinstance(data, list):
+            return jsonify({
+                'error': 'Expected a list of test cases'
+            }), 400
+        
+        # Process the test cases and calculate MST weights
+        results = calculate_mst_weights(data)
+        
+        return jsonify(results)
+    
+    except Exception as e:
+        logger.error(f"Error in MST calculation: {e}")
+        return jsonify({
+            'error': 'Internal server error'
+        }), 500
 if __name__ == "__main__":
     logging.info("Starting application in development mode...")
     
