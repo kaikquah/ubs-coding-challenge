@@ -3,7 +3,6 @@ import socket
 import os
 from flask import Flask, jsonify, request
 from TicketingAgent import calculate_distance, distance_to_points_linear, processInput
-from flask import Flask
 from blankety_challenge import blankety_bp
 from mst_solver import calculate_mst_weights
 from princess_diaries import solve_princess_diaries
@@ -17,6 +16,17 @@ app.register_blueprint(blankety_bp)
 @app.route('/', methods=['GET'])
 def default_route():
     return 'Python Template'
+
+@app.route('/debug-routes', methods=['GET'])
+def debug_routes():
+    routes = []
+    for rule in app.url_map.iter_rules():
+        routes.append({
+            'endpoint': rule.endpoint,
+            'methods': list(rule.methods),
+            'rule': str(rule)
+        })
+    return jsonify(routes)
 
 
 logger = logging.getLogger()
@@ -71,13 +81,17 @@ def mst_calculation():
 # Princess Diaries endpoint
 @app.route('/princess-diaries', methods=['POST'])
 def princess_diaries():
+    logger.info("Princess Diaries endpoint called")
     if request.content_type != 'application/json':
+        logger.error(f"Invalid content type: {request.content_type}")
         return jsonify({'error': 'Content-Type must be application/json'}), 400
     try:
         data = request.get_json()
+        logger.info(f"Received data: {data}")
         if not isinstance(data, dict):
             return jsonify({'error': 'Invalid payload format'}), 400
         result = solve_princess_diaries(data)
+        logger.info(f"Returning result: {result}")
         return jsonify(result)
     except Exception as e:
         logger.error(f"Error in /princess-diaries: {e}")

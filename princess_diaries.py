@@ -66,18 +66,24 @@ def _all_pairs_shortest_on_keys(adj: Dict[int, List[Tuple[int, int]]], key_nodes
 def solve_princess_diaries(payload: Dict[str, Any]) -> Dict[str, Any]:
     tasks_in: List[Dict[str, Any]] = payload.get("tasks", [])
     subway: List[Dict[str, Any]] = payload.get("subway", [])
-    s0: int = payload.get("starting_station")
+    s0 = payload.get("starting_station")
+    if s0 is None:
+        raise ValueError("starting_station is required")
+    s0 = int(s0)
 
     # Normalize and validate tasks
     tasks: List[Dict[str, Any]] = []
     for t in tasks_in:
-        tasks.append({
-            "name": t["name"],
-            "start": int(t["start"]),
-            "end": int(t["end"]),
-            "station": int(t["station"]),
-            "score": int(t["score"]),
-        })
+        try:
+            tasks.append({
+                "name": t["name"],
+                "start": int(t["start"]),
+                "end": int(t["end"]),
+                "station": int(t["station"]),
+                "score": int(t["score"]),
+            })
+        except (KeyError, ValueError, TypeError) as e:
+            raise ValueError(f"Invalid task data: {e}")
 
     # Edge case: no tasks
     if not tasks:
