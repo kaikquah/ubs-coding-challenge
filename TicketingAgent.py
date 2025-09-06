@@ -71,11 +71,9 @@ def distance_to_points_linear(distance, max_distance=6.0):
 def processInput(data):
     customers = data["customers"]
     concerts = data["concerts"]
-
     creditCardPrio = data["priority"]
 
     highestPrioTable = {}
-    # credit card priority table
 
     for customer in customers:
         custName = customer['name']
@@ -83,25 +81,33 @@ def processInput(data):
         isVip = customer['vip_status']
         largestPoints = -10
         mostLikely = None
+        
         for concert in concerts:
             concertPoints = 0
-            # check concert distance
+            
+            # Check concert distance
             dist = calculate_distance(custCoord, concert['booking_center_location'])
             distBonus = distance_to_points_linear(dist)
-            # check credit card
+            
+            # Check credit card priority - FIXED
             creditPoints = 0
-            if concert['name'] == creditCardPrio[customer['credit_card']]:
+            if concert['name'] == creditCardPrio.get(customer['credit_card']):
                 creditPoints += 50
-            # check vip
+            
+            # Check VIP status
             vipPoints = 0
             if isVip:
                 vipPoints += 100
-            concertPoints += distBonus + creditPoints + vipPoints
+                
+            concertPoints = distBonus + creditPoints + vipPoints
+            
             if concertPoints >= largestPoints:
                 largestPoints = max(largestPoints, concertPoints)
                 mostLikely = concert['name']
+                
         highestPrioTable[custName] = mostLikely
-    return highestPrioTable     
+    
+    return highestPrioTable    
 if __name__ == "__main__":
     processInput(sampleInput)
 
