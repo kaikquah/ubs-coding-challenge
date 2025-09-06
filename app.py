@@ -13,6 +13,11 @@ from sailing_club import sailing_bp
 import cv2
 from ink_archive_solver import solve_ink_archive_challenge
 from mages_gambit_solver import solve_mages_gambit_multiple
+<<<<<<< HEAD
+=======
+from sailing_club import merge_bookings, min_boats_needed
+from duolingo_sort import solve_duolingo_sort
+>>>>>>> 72925441da74f7f292dceda459869b6bb2614e23
 
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
@@ -283,6 +288,41 @@ def princess_diaries():
     except Exception as e:
         logger.error(f"Error in /princess-diaries: {e}")
         return jsonify({'error': 'Internal server error'}), 500
+
+# Duolingo Sort endpoint
+@app.route('/duolingo-sort', methods=['POST'])
+def duolingo_sort():
+    logger.info("Duolingo Sort endpoint called")
+    
+    if request.content_type != 'application/json':
+        logger.error(f"Invalid content type: {request.content_type}")
+        return jsonify({'error': 'Content-Type must be application/json'}), 400
+    
+    try:
+        data = request.get_json()
+        logger.info(f"Received Duolingo Sort data: Part {data.get('part')}, Challenge {data.get('challenge')}")
+        
+        # Validate input structure
+        if 'part' not in data or 'challengeInput' not in data:
+            logger.error("Missing required fields")
+            return jsonify({'error': 'Missing required fields: part or challengeInput'}), 400
+        
+        if 'unsortedList' not in data['challengeInput']:
+            logger.error("Missing unsortedList in challengeInput")
+            return jsonify({'error': 'Missing unsortedList in challengeInput'}), 400
+        
+        # Process the sorting challenge
+        logger.info(f"Processing {len(data['challengeInput']['unsortedList'])} items")
+        result = solve_duolingo_sort(data)
+        logger.info(f"Duolingo Sort result: {result}")
+        
+        return jsonify(result)
+    
+    except Exception as e:
+        logger.error(f"Error in /duolingo-sort: {e}")
+        import traceback
+        logger.error(f"Full traceback:\n{traceback.format_exc()}")
+        return jsonify({'error': 'Internal server error', 'message': str(e)}), 500
 
 # Add a simple test route to verify the app is working
 
