@@ -16,6 +16,19 @@ app = Flask(__name__)
 app.register_blueprint(blankety_bp)
 app.register_blueprint(latex_bp)
 
+@app.before_request
+def log_request_info():
+    logger.info('Request: %s %s', request.method, request.url)
+    logger.info('Headers: %s', dict(request.headers))
+    if request.is_json:
+        logger.info('Request Body: %s', request.get_json())
+    else:
+        logger.info('Request Data: %s', request.get_data(as_text=True))
+@app.after_request
+def log_response_info(response):
+    logger.info('Response Status: %s', response.status)
+    logger.info('Response Headers: %s', dict(response.headers))
+    return response
 @app.route('/', methods=['GET'])
 def default_route():
     return 'Python Template'
@@ -54,13 +67,53 @@ def ticket_agent():
     return response
 
 # spy network
+# spy network
 @app.route('/investigate', methods = ['POST'])
 def investigate():
-    data = request.get_json()
-    result = process_data(data)
-    response = jsonify(result)
-    return response
-
+    try:
+        logger.info("Investigate endpoint called")
+        
+        # Check content type
+        if request.content_type != 'application/json':
+            logger.error(f"Invalid content type: {request.content_type}")
+            return jsonify({
+                'error': 'Content-Type must be application/json'
+            }), 400
+        
+        # Get and validate JSON data
+        data = request.get_json()
+        logger.info(f"Received data: {data}")
+        
+        if not data:
+            logger.error("No JSON data received")
+            return jsonify({
+                'error': 'No JSON data provided'
+            }), 400
+        
+        if 'networks' not in data:
+            logger.error("Missing 'networks' key in data")
+            return jsonify({
+                'error': 'Missing networks key'
+            }), 400
+        
+        # Process the data
+        logger.info("Processing spy network data...")
+        result = process_data(data)
+        logger.info(f"Processing complete, result: {result}")
+        
+        # Return response
+        response = jsonify(result)
+        logger.info("Response created successfully")
+        return response
+        
+    except Exception as e:
+        logger.error(f"Error in /investigate endpoint: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        return jsonify({
+            'error': 'Internal server error',
+            'message': str(e)
+        }), 500
 # MST calculation endpoint
 @app.route('/mst-calculation', methods=['POST'])
 def mst_calculation():

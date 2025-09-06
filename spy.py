@@ -153,7 +153,16 @@ if __name__ == "__main__":
       ]
     }
     '''
-    
+    emptyJsonString = '''
+    {
+      "networks": [
+        {
+          "networkId": "empty",
+          "network": []
+        }
+      ]
+    }
+    '''
     print("Original sample:")
     sampleinput = json.loads(sampleJsonString)
     result = process_data(sampleinput)
@@ -162,4 +171,9 @@ if __name__ == "__main__":
     print("\nComplex example with multiple cycles:")
     complexinput = json.loads(complexJsonString)
     result2 = process_data(complexinput)
+    print(json.dumps(result2, indent=2))
+
+    print("\em;pty example with multiple cycles:")
+    emptyInput = json.loads(emptyJsonString)
+    result2 = process_data(emptyInput)
     print(json.dumps(result2, indent=2))
