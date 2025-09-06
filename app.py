@@ -4,13 +4,10 @@ import os
 from flask import Flask, jsonify, request
 from TicketingAgent import calculate_distance, distance_to_points_linear, processInput
 from blankety_challenge import blankety_bp
-<<<<<<< HEAD
 from spy import buildAdjacencyList, process_data, processNetwork
-=======
 from mst_solver import calculate_mst_weights
 from princess_diaries_optimized import solve_princess_diaries
-
->>>>>>> 8a247614233ea6739d2d73b0fd9dd48f7dcf5a84
+import cv2
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
@@ -54,15 +51,13 @@ def ticket_agent():
     response = jsonify(result)
     return response
 
-<<<<<<< HEAD
 # spy network
-@app.route('/investigate', method = ['POST'])
+@app.route('/investigate', methods = ['POST'])
 def investigate():
     data = request.get_json()
     result = process_data(data)
     response = jsonify(result)
     return response
-=======
 
 # MST calculation endpoint
 @app.route('/mst-calculation', methods=['POST'])
@@ -118,7 +113,6 @@ def test_route():
         'routes_count': len(list(app.url_map.iter_rules()))
     })
 
->>>>>>> 8a247614233ea6739d2d73b0fd9dd48f7dcf5a84
 if __name__ == "__main__":
     logging.info("Starting application in development mode...")
     
