@@ -7,12 +7,14 @@ from blankety_challenge import blankety_bp
 from spy import buildAdjacencyList, process_data, processNetwork
 from mst_solver import calculate_mst_weights
 from princess_diaries_optimized import solve_princess_diaries
+from latex_formula_evaluator import latex_bp
 import cv2
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
 # Register blueprints
 app.register_blueprint(blankety_bp)
+app.register_blueprint(latex_bp)
 
 @app.before_request
 def log_request_info():
