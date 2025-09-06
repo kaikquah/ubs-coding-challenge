@@ -6,6 +6,7 @@ from TicketingAgent import calculate_distance, distance_to_points_linear, proces
 from flask import Flask
 from blankety_challenge import blankety_bp
 from mst_solver import calculate_mst_weights
+from princess_diaries import solve_princess_diaries
 
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
@@ -65,6 +66,22 @@ def mst_calculation():
         return jsonify({
             'error': 'Internal server error'
         }), 500
+
+
+# Princess Diaries endpoint
+@app.route('/princess-diaries', methods=['POST'])
+def princess_diaries():
+    if request.content_type != 'application/json':
+        return jsonify({'error': 'Content-Type must be application/json'}), 400
+    try:
+        data = request.get_json()
+        if not isinstance(data, dict):
+            return jsonify({'error': 'Invalid payload format'}), 400
+        result = solve_princess_diaries(data)
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Error in /princess-diaries: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
 if __name__ == "__main__":
     logging.info("Starting application in development mode...")
     
