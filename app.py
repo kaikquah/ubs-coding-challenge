@@ -11,6 +11,8 @@ from latex_formula_evaluator import latex_bp
 from snakes_ladders_solver import snakes_bp
 from sailing_club import solve_sailing_club
 import cv2
+from ink_archive_solver import solve_ink_archive_challenge
+
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
@@ -117,6 +119,49 @@ def investigate():
             'error': 'Internal server error',
             'message': str(e)
         }), 500
+    
+
+    # Add this to your app.py file
+
+
+@app.route('/The-Ink-Archive', methods=['POST'])
+def ink_archive():
+    logger.info("Ink Archive endpoint called")
+    
+    if request.content_type != 'application/json':
+        logger.error(f"Invalid content type: {request.content_type}")
+        return jsonify({'error': 'Content-Type must be application/json'}), 400
+    
+    try:
+        data = request.get_json()
+        logger.info(f"Received Ink Archive data with {len(data)} challenges")
+        
+        if not isinstance(data, list):
+            logger.error("Expected a list of challenges")
+            return jsonify({'error': 'Expected a list of challenges'}), 400
+        
+        # Validate structure
+        for i, challenge in enumerate(data):
+            if not isinstance(challenge, dict):
+                logger.error(f"Challenge {i} is not a dict")
+                return jsonify({'error': f'Challenge {i} must be a dictionary'}), 400
+            
+            if 'goods' not in challenge or 'ratios' not in challenge:
+                logger.error(f"Challenge {i} missing required fields")
+                return jsonify({'error': f'Challenge {i} must have "goods" and "ratios" fields'}), 400
+        
+        # Process the challenges using the improved algorithm
+        logger.info("Processing Ink Archive challenges with improved algorithms...")
+        result = solve_ink_archive_challenge(data)
+        logger.info(f"Ink Archive result: {result}")
+        
+        return jsonify(result)
+    
+    except Exception as e:
+        logger.error(f"Error in /The-Ink-Archive: {e}")
+        import traceback
+        logger.error(f"Full traceback:\n{traceback.format_exc()}")
+        return jsonify({'error': 'Internal server error', 'message': str(e)}), 500
 # MST calculation endpoint
 @app.route('/mst-calculation', methods=['POST'])
 def mst_calculation():
