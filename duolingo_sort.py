@@ -301,7 +301,7 @@ def is_german(s):
     s = s.lower()
     
     # Quick checks for German-specific patterns
-    if any(keyword in s for keyword in ['und', 'hundert', 'tausend', 'million']):
+    if any(keyword in s for keyword in ['und', 'hundert', 'tausend', 'million', 'milliarde']):
         return True
     
     german_words = {
@@ -313,7 +313,7 @@ def is_german(s):
     }
     
     # Check if any word is German
-    words = s.replace('und', ' ').replace('hundert', ' ').replace('tausend', ' ').split()
+    words = s.replace('und', ' ').replace('hundert', ' ').replace('tausend', ' ').replace('million', ' ').replace('milliarde', ' ').split()
     return any(word in german_words for word in words)
 
 def parse_number(s):

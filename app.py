@@ -13,9 +13,15 @@ from sailing_club import sailing_bp
 import cv2
 from ink_archive_solver import solve_ink_archive_challenge
 from mages_gambit_solver import solve_mages_gambit_multiple
+<<<<<<< HEAD
 
 from sailing_club import merge_bookings, min_boats_needed
 from duolingo_sort import solve_duolingo_sort
+=======
+from sailing_club import merge_bookings, min_boats_needed
+from duolingo_sort import solve_duolingo_sort
+from fog_of_wall_solver import fog_bp
+>>>>>>> 505a30f491c2a376c6ef10db62fbb0a4803605c0
 
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
@@ -25,6 +31,7 @@ app.register_blueprint(blankety_bp)
 app.register_blueprint(latex_bp)
 app.register_blueprint(snakes_bp) 
 app.register_blueprint(sailing_bp)
+app.register_blueprint(fog_bp)
 
 @app.before_request
 def log_request_info():
@@ -292,7 +299,8 @@ def princess_diaries():
 def duolingo_sort():
     logger.info("Duolingo Sort endpoint called")
     
-    if request.content_type != 'application/json':
+    # Check if content type contains 'application/json' (allows charset)
+    if not request.is_json:
         logger.error(f"Invalid content type: {request.content_type}")
         return jsonify({'error': 'Content-Type must be application/json'}), 400
     
